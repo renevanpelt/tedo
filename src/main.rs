@@ -15,17 +15,23 @@ fn main() {
                 .about("Initialize Tedo in the current directory"),
         )
         .subcommand(
-    clap::SubCommand::with_name("list")
+            clap::SubCommand::with_name("list")
                 .aliases(&["ls", "l"])
                 .about("List objects like projects, tasks, etc.")
                 .subcommand(
                     clap::SubCommand::with_name("projects")
                         .aliases(&["p", "pr", "project"])
-                        .about("List all projects")
-                        .subcommand(
-                            clap::SubCommand::with_name("table")
-                                .about("List all tasks in the current project"),
-                        ),
+                        .about("List all projects"),
+                )
+        )
+        .subcommand(
+            clap::SubCommand::with_name("table")
+                .aliases(&["t", "tb", "tbl", "ta"])
+                .about("List objects like projects, tasks, etc.")
+                .subcommand(
+                    clap::SubCommand::with_name("projects")
+                        .aliases(&["p", "pr", "project"])
+                        .about("List all projects"),
                 )
         )
         .subcommand(
@@ -60,7 +66,6 @@ fn main() {
 
 
     if Path::new(&base_dir).exists() {
-
         if let Some(matches) = matches.subcommand_matches("create") {
             if let Some(project_matches) = matches.subcommand_matches("project") {
                 let project_name = project_matches.value_of("project_name").unwrap();
@@ -69,18 +74,17 @@ fn main() {
             }
         } else if let Some(matches) = matches.subcommand_matches("list") {
             if let Some(project_matches) = matches.subcommand_matches("projects") {
-                if let Some(table_matches) = project_matches.subcommand_matches("table") {
-                    projects::list_projects(&base_dir, "table");
-                } else {
-                    projects::list_projects(&base_dir, "list");
-
-                }
+                projects::list_projects(&base_dir, "list");
+            }
+        } else if let Some(matches) = matches.subcommand_matches("table") {
+            if let Some(project_matches) = matches.subcommand_matches("projects") {
+                projects::list_projects(&base_dir, "table");
             }
         }
+
     } else {
         println!("You can initialize Tedo using `tedo init`");
     }
-
 }
 
 
