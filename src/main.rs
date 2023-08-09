@@ -1,3 +1,5 @@
+use std::path::Path;
+
 mod storage;
 mod projects;
 
@@ -13,10 +15,26 @@ fn main() {
                 .about("Initialize Tedo in the current directory"),
         )
         .subcommand(
+    clap::SubCommand::with_name("list")
+                .aliases(&["ls", "l"])
+                .about("List objects like projects, tasks, etc.")
+                .subcommand(
+                    clap::SubCommand::with_name("projects")
+                        .aliases(&["p", "pr", "project"])
+                        .about("List all projects")
+                        .subcommand(
+                            clap::SubCommand::with_name("table")
+                                .about("List all tasks in the current project"),
+                        ),
+                )
+        )
+        .subcommand(
             clap::SubCommand::with_name("create")
+                .aliases(&["c", "cr"])
                 .about("Create new objects like projects, tasks, etc.")
                 .subcommand(
                     clap::SubCommand::with_name("project")
+                        .aliases(&["p", "pr"])
                         .about("Create a new project")
                         .arg(
                             clap::Arg::with_name("project_name")
@@ -41,15 +59,28 @@ fn main() {
     }
 
 
-    // Here we check wether we're initialised or not
+    if Path::new(&base_dir).exists() {
 
-    if let Some(matches) = matches.subcommand_matches("create") {
-        if let Some(project_matches) = matches.subcommand_matches("project") {
-            let project_name = project_matches.value_of("project_name").unwrap();
-            let switch = project_matches.is_present("switch");
-            projects::create_project(&base_dir, project_name, switch);
+        if let Some(matches) = matches.subcommand_matches("create") {
+            if let Some(project_matches) = matches.subcommand_matches("project") {
+                let project_name = project_matches.value_of("project_name").unwrap();
+                let switch = project_matches.is_present("switch");
+                projects::create_project(&base_dir, project_name, switch);
+            }
+        } else if let Some(matches) = matches.subcommand_matches("list") {
+            if let Some(project_matches) = matches.subcommand_matches("projects") {
+                if let Some(table_matches) = project_matches.subcommand_matches("table") {
+                    projects::list_projects(&base_dir, "table");
+                } else {
+                    projects::list_projects(&base_dir, "list");
+
+                }
+            }
         }
+    } else {
+        println!("You can initialize Tedo using `tedo init`");
     }
+
 }
 
 
