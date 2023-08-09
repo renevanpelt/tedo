@@ -1,28 +1,28 @@
 use std::path::Path;
+
 use crate::storage;
 use crate::storage::Project;
-use crate::storage::save_projects;
+use crate::storage::save_state;
 
 pub fn create_project(base_dir: &Path, name: &str, switch: bool) {
-    let mut projects = storage::load_projects(base_dir).unwrap_or_default();
+    let mut projects = storage::load_state(base_dir).unwrap_or_default();
     if projects.projects.iter().any(|p| p.name == name) {
         println!("Project with name {} already exists", name);
         return;
     }
     projects.projects.push(Project { name: name.into() });
+    save_state(base_dir, &projects).expect("Failed to save projects");
 
     if switch {
-        storage::set_current_project(name);
+        storage::set_current_project(base_dir, name);
     }
-    save_projects(base_dir, &projects).expect("Failed to save projects");
-
 }
 
 
 pub fn list_projects(base_dir: &Path, mode: &str) {
-    let projects = storage::load_projects(base_dir).unwrap_or_default();
+    let projects = storage::load_state(base_dir).unwrap_or_default();
 
-    if(mode == "table") {
+    if mode == "table" {
         println!("+ {:^20} +", "------------------");
         println!("| {:^21} |", "Projects 📽️");
         println!("| {:^20} |", "------------------");
@@ -40,8 +40,9 @@ pub fn list_projects(base_dir: &Path, mode: &str) {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use tempfile::tempdir;
+
+    use super::*;
 
     #[test]
     fn test_create_project() {
@@ -49,7 +50,7 @@ mod tests {
         let base_dir = dir.path();
 
         create_project(base_dir, "test_project", false);
-        let projects = storage::load_projects(base_dir).unwrap();
+        let projects = storage::load_state(base_dir).unwrap();
         assert_eq!(projects.projects.len(), 1);
         assert_eq!(projects.projects[0].name, "test_project");
     }
@@ -61,22 +62,22 @@ mod tests {
 
         create_project(base_dir, "test_project", false);
         create_project(base_dir, "test_project", false);
-        let projects = storage::load_projects(base_dir).unwrap();
+        let projects = storage::load_state(base_dir).unwrap();
         assert_eq!(projects.projects.len(), 1);
         assert_eq!(projects.projects[0].name, "test_project");
     }
 
-    // #[test]
-    // fn test_create_project_and_switch() {
-    //     let dir = tempdir().unwrap();
-    //     let base_dir = dir.path();
-    //
-    //     create_project(base_dir, "test_project", true);
-    //     let projects = storage::load_projects(base_dir).unwrap();
-    //     assert_eq!(projects.projects.len(), 1);
-    //     assert_eq!(projects.projects[0].name, "test_project");
-    //     assert_eq!(projects.current_project.unwrap(), "test_project");
-    // }
+    #[test]
+    fn test_create_project_and_switch() {
+        let dir = tempdir().unwrap();
+        let base_dir = dir.path();
+
+        create_project(base_dir, "test_project", true);
+        let projects = storage::load_state(base_dir).unwrap();
+        assert_eq!(projects.projects.len(), 1);
+        assert_eq!(projects.projects[0].name, "test_project");
+        assert_eq!(projects.current_project.unwrap(), "test_project");
+    }
 
     #[test]
     fn test_list_projects() {
@@ -86,7 +87,7 @@ mod tests {
         create_project(base_dir, "test_project_1", false);
         create_project(base_dir, "test_project_2", false);
         create_project(base_dir, "test_project_3", false);
-        let projects = storage::load_projects(base_dir).unwrap();
+        let projects = storage::load_state(base_dir).unwrap();
         assert_eq!(projects.projects.len(), 3);
         assert_eq!(projects.projects[0].name, "test_project_1");
         assert_eq!(projects.projects[1].name, "test_project_2");

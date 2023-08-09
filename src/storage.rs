@@ -5,8 +5,8 @@ use serde::{Serialize, Deserialize};
 use toml;
 
 #[derive(Serialize, Deserialize, Default)]
-pub struct Projects {
-    current_project: Option<String>,
+pub struct TedoState {
+    pub(crate) current_project: Option<String>,
     pub(crate) projects: Vec<Project>,
 }
 
@@ -16,33 +16,39 @@ pub struct Project {
 }
 
 
-pub fn load_projects(base_dir: &Path) -> Result<Projects, Box<dyn std::error::Error>> {
-    let path = get_projects_path(base_dir);
+pub fn load_state(base_dir: &Path) -> Result<TedoState, Box<dyn std::error::Error>> {
+    let path = get_state_path(base_dir);
     let mut file = File::open(&path)?;
     let mut data = String::new();
     file.read_to_string(&mut data)?;
-    let projects: Projects = toml::from_str(&data)?;
-    Ok(projects)
+    let tedo_state: TedoState = toml::from_str(&data)?;
+    Ok(tedo_state)
 }
 
 
-pub fn save_projects(base_dir: &Path, projects: &Projects) -> Result<(), Box<dyn std::error::Error>> {
-    let path = get_projects_path(base_dir);
+pub fn save_state(base_dir: &Path, tedo_state: &TedoState) -> Result<(), Box<dyn std::error::Error>> {
+    let path = get_state_path(base_dir);
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
         .open(&path)?;
-    let toml = toml::to_string(projects)?;
+    let toml = toml::to_string(tedo_state)?;
     file.write_all(toml.as_bytes())?;
     Ok(())
 }
 
-pub fn set_current_project(name: &str) {
-    // logic to update the current project
+pub fn set_current_project(base_dir: &Path, name: &str) {
+    let mut tedo_state = load_state(base_dir).unwrap_or_default();
+    if tedo_state.projects.iter().any(|p| p.name == name) {
+        tedo_state.current_project = Some(name.into());
+        save_state(base_dir, &tedo_state).expect("Failed to save projects");
+    } else {
+        println!("Project with name {} does not exist", name);
+    }
 }
 
-fn get_projects_path(base_dir: &Path) -> PathBuf {
-    base_dir.join("projects.toml")
+fn get_state_path(base_dir: &Path) -> PathBuf {
+    base_dir.join("tedo_state.toml")
 }
 
 
@@ -52,22 +58,22 @@ mod tests {
     use tempfile::tempdir;
 
     #[test]
-    fn test_save_and_load_projects() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_save_and_load_state() -> Result<(), Box<dyn std::error::Error>> {
         // Create a temporary directory.
         let dir = tempdir()?;
         let base_dir = dir.path();
 
         // Create a Projects object and save it.
-        let projects = Projects {
+        let tedo_state = TedoState {
             current_project: Some("test_project".into()),
             projects: vec![Project { name: "test".into() }],
         };
-        save_projects(base_dir, &projects)?;
+        save_state(base_dir, &tedo_state)?;
 
         // Load the Projects object and check that it's the same as what was saved.
-        let loaded_projects = load_projects(base_dir)?;
-        assert_eq!(projects.current_project, loaded_projects.current_project);
-        assert_eq!(projects.projects, loaded_projects.projects);
+        let loaded_state = load_state(base_dir)?;
+        assert_eq!(tedo_state.current_project, loaded_state.current_project);
+        assert_eq!(tedo_state.projects, loaded_state.projects);
 
         // Clean up.
         dir.close()?;
