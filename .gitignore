@@ -1,0 +1,16 @@
+# Compiled files
+/target/
+
+# These directories might contain IDE/project files that should not be in version control
+/.idea/
+/.vscode/
+
+# You may also want to ignore .env files containing environment variables
+.env
+
+# macOS specific
+.DS_Store
+
+# Cargo.lock if using a library
+# Uncomment if creating a library
+# Cargo.lock
