@@ -14,6 +14,7 @@ fn main() {
             clap::SubCommand::with_name("init")
                 .about("Initialize Tedo in the current directory"),
         )
+
         .subcommand(
             clap::SubCommand::with_name("list")
                 .aliases(&["ls", "l"])
@@ -24,6 +25,7 @@ fn main() {
                         .about("List all projects"),
                 )
         )
+
         .subcommand(
             clap::SubCommand::with_name("table")
                 .aliases(&["t", "tb", "tbl", "ta"])
@@ -34,6 +36,19 @@ fn main() {
                         .about("List all projects"),
                 )
         )
+
+
+        .subcommand(
+            clap::SubCommand::with_name("switch")
+                .aliases(&["s", "sw"])
+                .about("Switch context to a different project")
+                .arg(
+                    clap::Arg::with_name("project_name")
+                        .help("Name of the project")
+                        .required(true),
+                ),
+        )
+
         .subcommand(
             clap::SubCommand::with_name("create")
                 .aliases(&["c", "cr"])
@@ -80,6 +95,11 @@ fn main() {
             if let Some(project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "table");
             }
+        } else if let Some(matches) = matches.subcommand_matches("switch") {
+                let project_name = matches.value_of("project_name").unwrap();
+                projects::switch_project(&base_dir, project_name);
+        } else {
+            println!("Invalid command. Use `tedo --help` to see the list of available commands.");
         }
 
     } else {

@@ -5,16 +5,28 @@ use crate::storage::Project;
 use crate::storage::save_state;
 
 pub fn create_project(base_dir: &Path, name: &str, switch: bool) {
-    let mut projects = storage::load_state(base_dir).unwrap_or_default();
-    if projects.projects.iter().any(|p| p.name == name) {
+    let mut tedo_state = storage::load_state(base_dir).unwrap_or_default();
+    if tedo_state.projects.iter().any(|p| p.name == name) {
         println!("Project with name {} already exists", name);
         return;
     }
-    projects.projects.push(Project { name: name.into() });
-    save_state(base_dir, &projects).expect("Failed to save projects");
+    tedo_state.projects.push(Project { name: name.into() });
+    save_state(base_dir, &tedo_state).expect("Failed to save projects");
 
     if switch {
+        switch_project(base_dir, name);
+    }
+}
+
+
+pub fn switch_project(base_dir: &Path, name: &str) {
+    let tedo_state = storage::load_state(base_dir).unwrap_or_default();
+    println!("{:?}", tedo_state);
+    println!("Switching to project {}", name);
+    if tedo_state.projects.iter().any(|p| p.name == name) {
         storage::set_current_project(base_dir, name);
+    } else {
+        println!("Project with name {} does not exist", name);
     }
 }
 

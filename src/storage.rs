@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use serde::{Serialize, Deserialize};
 use toml;
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct TedoState {
     pub(crate) current_project: Option<String>,
     pub(crate) projects: Vec<Project>,
