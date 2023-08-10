@@ -25,6 +25,7 @@ impl PartialEq for Project {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Task {
+    pub id: u32,
     pub description: String,
     // Add other task properties here, such as status, due date, etc.
 }

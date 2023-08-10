@@ -23,10 +23,11 @@ pub fn switch_project(base_dir: &Path, name: &str) {
     let tedo_state = storage::load_state(base_dir).unwrap_or_default();
     println!("{:?}", tedo_state);
     println!("Switching to project {}", name);
+    
     if tedo_state.projects.iter().any(|p| p.name == name) {
         storage::set_current_project(base_dir, name);
     } else {
-        println!("Project with name {} does not exist", name);
+        println!("DIIIIIIT is hier Project with name {} does not exist", name);
     }
 }
 

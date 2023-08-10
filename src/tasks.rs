@@ -1,85 +1,77 @@
 use std::path::Path;
 use crate::storage;
-use crate::storage::{Task, save_state};
+use crate::storage::Task;
+use crate::storage::save_state;
 
-pub fn create_task(base_dir: &Path, project_name: &str, task_description: &str) {
+pub fn create_task(base_dir: &Path, description: &str) {
     let mut tedo_state = storage::load_state(base_dir).unwrap_or_default();
-    let task = Task { description: task_description.into() };
-    if let Some(project) = tedo_state.projects.iter_mut().find(|p| p.name == project_name) {
-        project.tasks.push(task);
+    let current_project_name = tedo_state.current_project.clone().unwrap_or_default();
+
+    let project = tedo_state.projects.iter_mut().find(|p| p.name == current_project_name);
+
+    if let Some(project) = project {
+        let next_id = project.tasks.len() as u32 + 1;
+        project.tasks.push(Task { id: next_id, description: description.into() });
         save_state(base_dir, &tedo_state).expect("Failed to save task");
-        println!("Task added to project {}!", project_name);
     } else {
-        println!("Project with name {} does not exist", project_name);
+        println!("No selected project. Please switch to a project before creating a task.");
     }
 }
 
-pub fn list_tasks(base_dir: &Path, project_name: &str) {
-    let tedo_state = storage::load_state(base_dir).unwrap_or_default();
-    if let Some(project) = tedo_state.projects.iter().find(|p| p.name == project_name) {
-        println!("Tasks for project {}:", project_name);
-        for task in &project.tasks {
-            println!("{}", task.description);
-        }
-    } else {
-        println!("Project with name {} does not exist", project_name);
-    }
-}
-
-// Add other functions to manipulate tasks as needed
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::projects::create_project;
     use tempfile::tempdir;
 
+    use super::*;
+    use crate::projects::{create_project, switch_project};
+
     #[test]
-    fn test_create_task() {
+    fn test_create_task_in_selected_project() {
         let dir = tempdir().unwrap();
         let base_dir = dir.path();
-        let project_name = "test_project";
-        let task_description = "Write code";
 
-        create_project(base_dir, project_name, false);
-        create_task(base_dir, project_name, task_description);
-        let tedo_state = storage::load_state(base_dir).unwrap();
+        create_project(base_dir, "test_project", false);
+        switch_project(base_dir, "test_project");
 
-        assert_eq!(tedo_state.projects.len(), 1);
-        assert_eq!(tedo_state.projects[0].tasks.len(), 1);
-        assert_eq!(tedo_state.projects[0].tasks[0].description, task_description);
+        create_task(base_dir, "test_task");
+        let state = storage::load_state(base_dir).unwrap();
+
+        assert_eq!(state.projects.len(), 1);
+        assert_eq!(state.projects[0].name, "test_project");
+        assert_eq!(state.projects[0].tasks.len(), 1);
+        assert_eq!(state.projects[0].tasks[0].id, 1);
+        assert_eq!(state.projects[0].tasks[0].description, "test_task");
     }
 
     #[test]
-    fn test_create_task_nonexistent_project() {
+    fn test_create_task_without_selected_project() {
         let dir = tempdir().unwrap();
         let base_dir = dir.path();
-        let project_name = "nonexistent_project";
-        let task_description = "Write code";
 
-        create_task(base_dir, project_name, task_description);
-        let tedo_state = storage::load_state(base_dir).unwrap_or_default();
+        create_project(base_dir, "test_project", false);
 
-        // There should be no projects or tasks since the project does not exist
-        assert_eq!(tedo_state.projects.len(), 0);
+        create_task(base_dir, "test_task");
+        let state = storage::load_state(base_dir).unwrap();
+
+        assert_eq!(state.projects.len(), 1);
+        assert_eq!(state.projects[0].tasks.len(), 0); // No task should be added
     }
 
     #[test]
-    fn test_list_tasks() {
+    fn test_create_multiple_tasks_in_selected_project() {
         let dir = tempdir().unwrap();
         let base_dir = dir.path();
-        let project_name = "test_project";
-        let task_description1 = "Write code";
-        let task_description2 = "Write tests";
 
-        create_project(base_dir, project_name, false);
-        create_task(base_dir, project_name, task_description1);
-        create_task(base_dir, project_name, task_description2);
-        let tedo_state = storage::load_state(base_dir).unwrap();
+        create_project(base_dir, "test_project", false);
+        switch_project(base_dir, "test_project");
 
-        assert_eq!(tedo_state.projects.len(), 1);
-        assert_eq!(tedo_state.projects[0].tasks.len(), 2);
-        assert_eq!(tedo_state.projects[0].tasks[0].description, task_description1);
-        assert_eq!(tedo_state.projects[0].tasks[1].description, task_description2);
+        create_task(base_dir, "test_task_1");
+        create_task(base_dir, "test_task_2");
+        let state = storage::load_state(base_dir).unwrap();
+
+        assert_eq!(state.projects[0].tasks.len(), 2);
+        assert_eq!(state.projects[0].tasks[0].description, "test_task_1");
+        assert_eq!(state.projects[0].tasks[1].description, "test_task_2");
     }
 }
