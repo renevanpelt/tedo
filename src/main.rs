@@ -24,6 +24,11 @@ fn main() {
                         .aliases(&["p", "pr", "project"])
                         .about("List all projects"),
                 )
+                .subcommand(
+                    clap::SubCommand::with_name("tasks")
+                        .aliases(&["t", "ts", "task"])
+                        .about("List all tasks"),
+                ),
         )
 
         .subcommand(
@@ -35,6 +40,11 @@ fn main() {
                         .aliases(&["p", "pr", "project"])
                         .about("List all projects"),
                 )
+                .subcommand(
+                    clap::SubCommand::with_name("tasks")
+                        .aliases(&["t", "ts", "task"])
+                        .about("List all tasks"),
+                ),
         )
 
 
@@ -111,11 +121,17 @@ fn main() {
         } else if let Some(matches) = matches.subcommand_matches("list") {
             if let Some(_project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "list");
+            } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
+                tasks::list_tasks(&base_dir, "list");
             }
+
         } else if let Some(matches) = matches.subcommand_matches("table") {
             if let Some(_project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "table");
+            } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
+                tasks::list_tasks(&base_dir, "table");
             }
+
         } else if let Some(matches) = matches.subcommand_matches("switch") {
                 let project_name = matches.value_of("project_name").unwrap();
                 projects::switch_project(&base_dir, project_name);

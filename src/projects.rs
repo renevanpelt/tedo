@@ -23,7 +23,7 @@ pub fn switch_project(base_dir: &Path, name: &str) {
     let tedo_state = storage::load_state(base_dir).unwrap_or_default();
     println!("{:?}", tedo_state);
     println!("Switching to project {}", name);
-    
+
     if tedo_state.projects.iter().any(|p| p.name == name) {
         storage::set_current_project(base_dir, name);
     } else {
@@ -36,13 +36,13 @@ pub fn list_projects(base_dir: &Path, mode: &str) {
     let projects = storage::load_state(base_dir).unwrap_or_default();
 
     if mode == "table" {
-        println!("+ {:^20} +", "------------------");
-        println!("| {:^21} |", "Projects 📽️");
-        println!("| {:^20} |", "------------------");
+        println!("+ {:^20} + {:^20} +", "------------------", "----------");
+        println!("| {:^21} + {:^20} |", "Projects ??️", "Tasks");
+        println!("+ {:^20} + {:^20} +", "------------------", "----------");
         for project in projects.projects {
-            println!("| {:^20} |", project.name);
+            println!("| {:^20} | {:^20} |", project.name, project.tasks.len());
         }
-        println!("+ {:^20} +", "------------------");
+        println!("+ {:^20} + {:^20} +", "------------------", "----------");
         return;
     }
     for project in projects.projects {
