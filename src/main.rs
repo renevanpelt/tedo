@@ -88,11 +88,11 @@ fn main() {
                 projects::create_project(&base_dir, project_name, switch);
             }
         } else if let Some(matches) = matches.subcommand_matches("list") {
-            if let Some(project_matches) = matches.subcommand_matches("projects") {
+            if let Some(_project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "list");
             }
         } else if let Some(matches) = matches.subcommand_matches("table") {
-            if let Some(project_matches) = matches.subcommand_matches("projects") {
+            if let Some(_project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "table");
             }
         } else if let Some(matches) = matches.subcommand_matches("switch") {
