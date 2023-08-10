@@ -10,7 +10,7 @@ pub fn create_project(base_dir: &Path, name: &str, switch: bool) {
         println!("Project with name {} already exists", name);
         return;
     }
-    tedo_state.projects.push(Project { name: name.into() });
+    tedo_state.projects.push(Project { name: name.into(), tasks: Vec::new() });
     save_state(base_dir, &tedo_state).expect("Failed to save projects");
 
     if switch {

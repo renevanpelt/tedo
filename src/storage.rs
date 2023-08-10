@@ -10,9 +10,23 @@ pub struct TedoState {
     pub(crate) projects: Vec<Project>,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Project {
     pub name: String,
+    pub tasks: Vec<Task>,
+}
+
+impl PartialEq for Project {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+        // Compare other fields as needed
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Task {
+    pub description: String,
+    // Add other task properties here, such as status, due date, etc.
 }
 
 
@@ -66,7 +80,7 @@ mod tests {
         // Create a Projects object and save it.
         let tedo_state = TedoState {
             current_project: Some("test_project".into()),
-            projects: vec![Project { name: "test".into() }],
+            projects: vec![Project { name: "test".into(), tasks: Vec::new() }],
         };
         save_state(base_dir, &tedo_state)?;
 

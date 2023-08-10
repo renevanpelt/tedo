@@ -2,7 +2,7 @@ use std::path::Path;
 
 mod storage;
 mod projects;
-
+mod tasks;
 
 fn main() {
     let base_dir = dirs::home_dir().unwrap().join(".tedo");
@@ -54,6 +54,22 @@ fn main() {
                 .aliases(&["c", "cr"])
                 .about("Create new objects like projects, tasks, etc.")
                 .subcommand(
+                    clap::SubCommand::with_name("task")
+                        .aliases(&["t", "tsk"])
+                        .about("Create a new task")
+                        .arg(
+                            clap::Arg::with_name("project_name")
+                                .help("Name of the project the task belongs to")
+                                .required(true),
+                        )
+                        .arg(
+                            clap::Arg::with_name("task_description")
+                                .help("Description of the task")
+                                .required(true),
+                        ),
+                )
+
+                .subcommand(
                     clap::SubCommand::with_name("project")
                         .aliases(&["p", "pr"])
                         .about("Create a new project")
@@ -86,6 +102,12 @@ fn main() {
                 let project_name = project_matches.value_of("project_name").unwrap();
                 let switch = project_matches.is_present("switch");
                 projects::create_project(&base_dir, project_name, switch);
+            }
+
+            if let Some(task_matches) = matches.subcommand_matches("task") {
+                let project_name = task_matches.value_of("project_name").unwrap();
+                let task_description = task_matches.value_of("task_description").unwrap();
+                tasks::create_task(&base_dir, project_name, task_description); // Implement this function
             }
         } else if let Some(matches) = matches.subcommand_matches("list") {
             if let Some(_project_matches) = matches.subcommand_matches("projects") {
