@@ -59,7 +59,9 @@ fn main() {
                         .arg(
                             clap::Arg::with_name("task_description")
                                 .help("Description of the task")
-                                .required(true),
+                                .required(true)
+                                .multiple(true),
+
                         ),
                 )
 
@@ -99,8 +101,12 @@ fn main() {
             }
 
             if let Some(task_matches) = matches.subcommand_matches("task") {
-                let task_description = task_matches.value_of("task_description").unwrap();
-                tasks::create_task(&base_dir, task_description);
+                let task_description: Vec<&str> = task_matches
+                    .values_of("task_description")
+                    .unwrap()
+                    .collect();
+                let task_description = task_description.join(" ");
+                tasks::create_task(&base_dir, &task_description);
             }
         } else if let Some(matches) = matches.subcommand_matches("list") {
             if let Some(_project_matches) = matches.subcommand_matches("projects") {
