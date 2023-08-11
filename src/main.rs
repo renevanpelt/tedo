@@ -53,7 +53,7 @@ fn main() {
         )
         .subcommand(
             clap::SubCommand::with_name("table")
-                .aliases(&["t", "tb", "tbl", "ta"])
+                .aliases(&["t", "tb", "tbl", "ta", "tab"])
                 .about("List objects like projects, tasks, etc.")
                 .subcommand(
                     clap::SubCommand::with_name("projects")
@@ -64,6 +64,11 @@ fn main() {
                     clap::SubCommand::with_name("tasks")
                         .aliases(&["t", "ts", "task"])
                         .about("List all tasks"),
+                )
+                .subcommand(
+                    clap::SubCommand::with_name("notes")
+                        .aliases(&["n", "nt", "note"])
+                        .about("List all notes"),
                 ),
         )
 
@@ -98,6 +103,7 @@ fn main() {
                 .subcommand(
                     clap::SubCommand::with_name("task")
                         .about("Create a new task")
+                        .aliases(&["t", "ts"])
                         .arg(
                             clap::Arg::with_name("task_description")
                                 .help("Description of the task")

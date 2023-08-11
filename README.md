@@ -32,5 +32,29 @@ tedo switch <project_name>
 Creates a new task in the current context (project).
 
 ```bash
-tedo create task <task_description> [--due <due_date>]
+tedo create task <task_description>
 ```
+
+### 4. Likewise, create a Note Current Context
+
+```bash
+tedo create note <note_title>
+```
+
+### 5. List notes
+
+```bash
+tedo list notes
+```
+or in table mode
+```bash
+tedo table notes
+```
+
+### 6. Edit a note
+
+```bash
+tedo edit note <note_identifier>
+```
+
+Where the `<note_identifier>` is the note's id or slug.

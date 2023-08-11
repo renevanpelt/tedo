@@ -27,13 +27,13 @@ pub fn list_tasks(base_dir: &Path, mode: &str) {
 
     if let Some(project) = project {
         if mode == "table" {
-            println!("+ {:^10} + {:^30} +", "----------", "----------------------------");
-            println!("| {:^10} | {:^30} |", "ID", "Description");
-            println!("| {:^10} | {:^30} |", "----------", "----------------------------");
+            println!("+ {:^10} + {:^40} +", "----------", "---------------------------------------");
+            println!("| {:^10} | {:^40} |", "ID", "Description");
+            println!("| {:^10} | {:^40} |", "----------", "---------------------------------------");
             for task in &project.tasks {
-                println!("| {:^10} | {:^30} |", task.id, task.description);
+                println!("| {:^10} | {:^40} |", task.id, task.description);
             }
-            println!("+ {:^10} + {:^30} +", "----------", "----------------------------");
+            println!("+ {:^10} + {:^40} +", "----------", "---------------------------------------");
             return;
         }
         for task in &project.tasks {

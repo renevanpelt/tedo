@@ -4,6 +4,14 @@ use crate::storage;
 use crate::storage::Project;
 use crate::storage::save_state;
 
+pub fn current_project(base_dir: &Path) -> Option<Project> {
+    let tedo_state = storage::load_state(base_dir).unwrap_or_default();
+    let current_project_name = tedo_state.current_project.unwrap_or_default();
+
+    tedo_state.projects.into_iter().find(|p| p.name == current_project_name)
+}
+
+
 pub fn create_project(base_dir: &Path, name: &str, switch: bool) {
     let mut tedo_state = storage::load_state(base_dir).unwrap_or_default();
     if tedo_state.projects.iter().any(|p| p.name == name) {
@@ -35,12 +43,21 @@ pub fn switch_project(base_dir: &Path, name: &str) {
 pub fn list_projects(base_dir: &Path, mode: &str) {
     let projects = storage::load_state(base_dir).unwrap_or_default();
 
+    let current_project = current_project(base_dir);
+
     if mode == "table" {
         println!("+ {:^21} + {:^20}  + {:^20} +", "------------------", "----------", "----------");
         println!("| {:^21} + {:^20}  + {:^20} |", "Projects", "Tasks", "Notes");
         println!("+ {:^21} + {:^20}  + {:^20} +", "------------------", "----------", "----------");
         for project in projects.projects {
-            println!("| {:^21} + {:^20}  + {:^20} |", project.name, project.tasks.len(), project.notes.len());
+            if let Some(current_project) = &current_project {
+                if project.name == current_project.name {
+                    println!("| {:^21} + {:^20}  + {:^20} |", format!("{} (current)", project.name), project.tasks.len(), project.notes.len());
+                } else {
+                    println!("| {:^21} + {:^20}  + {:^20} |", project.name, project.tasks.len(), project.notes.len());
+
+                }
+            }
         }
         println!("+ {:^21} + {:^20}  + {:^20} +", "------------------", "----------", "----------");
         return;
