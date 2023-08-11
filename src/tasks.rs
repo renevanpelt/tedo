@@ -1,4 +1,5 @@
 use std::path::Path;
+use crate::projects::current_project;
 
 use crate::storage;
 use crate::storage::save_state;
@@ -20,10 +21,8 @@ pub fn create_task(base_dir: &Path, description: &str) {
 }
 
 pub fn list_tasks(base_dir: &Path, mode: &str) {
-    let tedo_state = storage::load_state(base_dir).unwrap_or_default();
-    let current_project_name = tedo_state.current_project.clone().unwrap_or_default();
 
-    let project = tedo_state.projects.iter().find(|p| p.name == current_project_name);
+    let project = current_project(&base_dir);
 
     if let Some(project) = project {
         if mode == "table" {
