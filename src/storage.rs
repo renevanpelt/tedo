@@ -61,7 +61,6 @@ pub fn save_state(base_dir: &Path, tedo_state: &TedoState) -> Result<(), Box<dyn
         .open(&path)?;
     let toml = toml::to_string(tedo_state)?;
     file.write_all(toml.as_bytes())?;
-    println!("Saved state: {:?}", tedo_state);
     Ok(())
 }
 

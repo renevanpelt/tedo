@@ -23,7 +23,7 @@ pub fn edit_note(base_dir: &Path, id: u32) {
             write!(temp_file, "{}", note.content).expect("Failed to write to temporary file");
 
             // Launch the VI editor to edit the file
-            Command::new("vi")
+            Command::new("nvim")
                 .arg(temp_file.path())
                 .status()
                 .expect("Failed to launch editor");
