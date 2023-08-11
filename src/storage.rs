@@ -49,7 +49,6 @@ pub fn load_state(base_dir: &Path) -> Result<TedoState, Box<dyn std::error::Erro
     let mut data = String::new();
     file.read_to_string(&mut data)?;
     let tedo_state: TedoState = toml::from_str(&data)?;
-    println!("Loaded state: {:?}", tedo_state);
     Ok(tedo_state)
 }
 

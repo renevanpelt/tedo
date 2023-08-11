@@ -21,6 +21,11 @@ fn main() {
                 .aliases(&["ls", "l"])
                 .about("List objects like projects, tasks, etc.")
                 .subcommand(
+                    clap::SubCommand::with_name("notes")
+                        .aliases(&["n", "nt", "note"])
+                        .about("List all notes"),
+                )
+                .subcommand(
                     clap::SubCommand::with_name("projects")
                         .aliases(&["p", "pr", "project"])
                         .about("List all projects"),
@@ -31,7 +36,21 @@ fn main() {
                         .about("List all tasks"),
                 ),
         )
-
+        .subcommand(
+            clap::SubCommand::with_name("edit")
+                .aliases(&["e", "ed"])
+                .about("Edit objects like projects, tasks, etc.")
+                .subcommand(
+                    clap::SubCommand::with_name("note")
+                        .aliases(&["n", "nt"])
+                        .about("Edit a note")
+                        .arg(
+                            clap::Arg::with_name("note_identifier")
+                                .help("ID or slug of the note")
+                                .required(true),
+                        ),
+                )
+        )
         .subcommand(
             clap::SubCommand::with_name("table")
                 .aliases(&["t", "tb", "tbl", "ta"])
@@ -154,8 +173,15 @@ fn main() {
             }
 
         } else if let Some(matches) = matches.subcommand_matches("switch") {
-                let project_name = matches.value_of("project_name").unwrap();
-                projects::switch_project(&base_dir, project_name);
+            let project_name = matches.value_of("project_name").unwrap();
+            projects::switch_project(&base_dir, project_name);
+        } else if let Some(matches) = matches.subcommand_matches("edit") {
+            if let Some(note_matches) = matches.subcommand_matches("note") {
+                let note_identifier = note_matches.value_of("note_identifier").unwrap();
+                let note_id = note_identifier.parse::<u32>().expect("Failed to parse note identifier");
+                notes::edit_note(&base_dir, note_id);
+
+            }
         } else {
             println!("Invalid command. Use `tedo --help` to see the list of available commands.");
         }
