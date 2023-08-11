@@ -3,6 +3,7 @@ use std::path::Path;
 mod storage;
 mod projects;
 mod tasks;
+mod notes;
 
 fn main() {
     let base_dir = dirs::home_dir().unwrap().join(".tedo");
@@ -64,6 +65,18 @@ fn main() {
                 .aliases(&["c", "cr"])
                 .about("Create new objects like projects, tasks, etc.")
                 .subcommand(
+                    clap::SubCommand::with_name("note")
+                        .aliases(&["n", "nt"])
+                        .about("Create a new note")
+                        .arg(
+                            clap::Arg::with_name("note_description")
+                                .help("Description of the note")
+                                .required(true)
+                                .multiple(true),
+                        ),
+
+                )
+                .subcommand(
                     clap::SubCommand::with_name("task")
                         .about("Create a new task")
                         .arg(
@@ -104,6 +117,14 @@ fn main() {
 
     if Path::new(&base_dir).exists() {
         if let Some(matches) = matches.subcommand_matches("create") {
+            if let Some(note_matches) = matches.subcommand_matches("note") {
+                let note_description: Vec<&str> = note_matches
+                    .values_of("note_description")
+                    .unwrap()
+                    .collect();
+                let note_description = note_description.join(" ");
+                notes::create_note(&base_dir, &note_description, "");
+            }
             if let Some(project_matches) = matches.subcommand_matches("project") {
                 let project_name = project_matches.value_of("project_name").unwrap();
                 let switch = project_matches.is_present("switch");

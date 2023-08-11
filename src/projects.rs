@@ -10,7 +10,7 @@ pub fn create_project(base_dir: &Path, name: &str, switch: bool) {
         println!("Project with name {} already exists", name);
         return;
     }
-    tedo_state.projects.push(Project { name: name.into(), tasks: Vec::new() });
+    tedo_state.projects.push(Project { name: name.into(), tasks: Vec::new(), notes: Vec::new() });
     save_state(base_dir, &tedo_state).expect("Failed to save projects");
 
     if switch {
@@ -21,13 +21,13 @@ pub fn create_project(base_dir: &Path, name: &str, switch: bool) {
 
 pub fn switch_project(base_dir: &Path, name: &str) {
     let tedo_state = storage::load_state(base_dir).unwrap_or_default();
-    println!("{:?}", tedo_state);
-    println!("Switching to project {}", name);
+
 
     if tedo_state.projects.iter().any(|p| p.name == name) {
+        println!("Switching to project {}", name);
         storage::set_current_project(base_dir, name);
     } else {
-        println!("DIIIIIIT is hier Project with name {} does not exist", name);
+        println!("Project with name {} does not exist", name);
     }
 }
 
@@ -36,13 +36,13 @@ pub fn list_projects(base_dir: &Path, mode: &str) {
     let projects = storage::load_state(base_dir).unwrap_or_default();
 
     if mode == "table" {
-        println!("+ {:^20} + {:^20} +", "------------------", "----------");
-        println!("| {:^21} + {:^20} |", "Projects ??️", "Tasks");
-        println!("+ {:^20} + {:^20} +", "------------------", "----------");
+        println!("+ {:^21} + {:^20}  + {:^20} +", "------------------", "----------", "----------");
+        println!("| {:^21} + {:^20}  + {:^20} |", "Projects", "Tasks", "Notes");
+        println!("+ {:^21} + {:^20}  + {:^20} +", "------------------", "----------", "----------");
         for project in projects.projects {
-            println!("| {:^20} | {:^20} |", project.name, project.tasks.len());
+            println!("| {:^21} + {:^20}  + {:^20} |", project.name, project.tasks.len(), project.notes.len());
         }
-        println!("+ {:^20} + {:^20} +", "------------------", "----------");
+        println!("+ {:^21} + {:^20}  + {:^20} +", "------------------", "----------", "----------");
         return;
     }
     for project in projects.projects {
@@ -107,3 +107,4 @@ mod tests {
         assert_eq!(projects.projects[2].name, "test_project_3");
     }
 }
+
