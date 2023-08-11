@@ -13,8 +13,6 @@ pub fn create_task(base_dir: &Path, description: &str) {
     if let Some(project) = project {
         let next_id = project.tasks.len() as u32 + 1;
         project.tasks.push(Task { id: next_id, description: description.into() });
-        println!("- - - - - - Created task {} in project {}", next_id, project.name);
-        println!("- - - - - - {:?}", tedo_state);
         save_state(base_dir, &tedo_state).expect("Failed to save task");
     } else {
         println!("No selected project. Please switch to a project before creating a task.");
@@ -95,7 +93,6 @@ mod tests {
         create_project(base_dir, "test_project", false);
         switch_project(base_dir, "test_project");
 
-        println!("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ fooooooo {:?} foooooooo", base_dir);
         create_task(base_dir, "test_task_1");
         create_task(base_dir, "test_task_2");
         let state = storage::load_state(base_dir).unwrap();
