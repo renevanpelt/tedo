@@ -169,6 +169,8 @@ fn main() {
                 projects::list_projects(&base_dir, "list");
             } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
                 tasks::list_tasks(&base_dir, "list");
+            } else if let Some(_note_matches) = matches.subcommand_matches("notes"){
+                notes::list_notes(&base_dir, "list");
             }
 
         } else if let Some(matches) = matches.subcommand_matches("table") {
@@ -176,6 +178,8 @@ fn main() {
                 projects::list_projects(&base_dir, "table");
             } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
                 tasks::list_tasks(&base_dir, "table");
+            } else if let Some(_note_matches) = matches.subcommand_matches("notes") {
+                notes::list_notes(&base_dir, "table");
             }
 
         } else if let Some(matches) = matches.subcommand_matches("switch") {

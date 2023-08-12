@@ -1,5 +1,5 @@
 use std::path::Path;
-use crate::storage;
+use crate::{projects, storage};
 use crate::storage::save_state;
 use crate::storage::Note;
 use std::fs::File;
@@ -8,6 +8,29 @@ use std::io::Write;
 
 use std::process::Command;
 
+
+pub fn list_notes(base_dir: &Path, mode: &str) {
+
+    let project = projects::current_project(&base_dir);
+
+    if let Some(project) = project {
+        if mode == "table" {
+            println!("+ {:^10} + {:^40} +", "----------", "---------------------------------------");
+            println!("| {:^10} | {:^40} |", "ID", "Description");
+            println!("| {:^10} | {:^40} |", "----------", "---------------------------------------");
+            for note in &project.notes {
+                println!("| {:^10} | {:^40} |", note.id, note.description);
+            }
+            println!("+ {:^10} + {:^40} +", "----------", "---------------------------------------");
+            return;
+        }
+        for note in &project.notes {
+            println!("{} {}", note.id, note.description);
+        }
+    } else {
+        println!("No selected project. Please switch to a project before listing notes.");
+    }
+}
 
 pub fn edit_note(base_dir: &Path, id: u32) {
     let mut tedo_state = storage::load_state(base_dir).unwrap_or_default();
