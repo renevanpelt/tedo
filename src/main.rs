@@ -5,9 +5,136 @@ mod projects;
 mod tasks;
 mod notes;
 mod tedo;
+
+
 fn main() {
     let base_dir = dirs::home_dir().unwrap().join(".tedo");
+    let args: Vec<String> = std::env::args().collect();
 
+    let known_subcommands = vec!["init", "create", "list", "edit", "switch", "table"];
+    let processed_args;
+
+    if args.len() > 1 && !known_subcommands.contains(&args[1].as_str()) {
+        // Convert shortcuts to potential subcommands
+        let new_args = arguments_from_shortcut(&args);
+
+        // Merge the new args with the old ones
+        let mut merged_args = vec![args[0].clone()];
+        merged_args.extend(new_args);
+        merged_args.extend(args[2..].to_vec());
+
+        processed_args = merged_args;
+    } else {
+        processed_args = args.clone();
+    }
+
+    let matches = process_matches(&processed_args);
+    handle_arguments(&base_dir, &matches);
+}
+
+
+fn initialize_tedo() {
+    use std::fs;
+    use std::io;
+
+    println!("Are you sure you want to initialize tedo on your machine? A folder named .tedo will be created in your home directory (y/n)");
+
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+
+    if input.trim() == "y" {
+        let path = dirs::home_dir().unwrap().join(".tedo");
+        fs::create_dir_all(&path).expect("Failed to create .tedo directory");
+        println!(".tedo directory has been created successfully!");
+    } else {
+        println!("Initialization aborted.");
+    }
+}
+
+fn handle_arguments(base_dir: &Path,matches: &clap::ArgMatches) {
+
+    // Handling the init subcommand
+    if matches.subcommand_matches("init").is_some() {
+        initialize_tedo();
+        return;
+    }
+
+
+    if Path::new(&base_dir).exists() {
+        if let Some(matches) = matches.subcommand_matches("create") {
+            if let Some(note_matches) = matches.subcommand_matches("note") {
+                let note_description: Vec<&str> = note_matches
+                    .values_of("note_description")
+                    .unwrap()
+                    .collect();
+                let note_description = note_description.join(" ");
+                notes::create_note(&base_dir, &note_description, "");
+            }
+            if let Some(project_matches) = matches.subcommand_matches("project") {
+                let project_name = project_matches.value_of("project_name").unwrap();
+                let switch = project_matches.is_present("switch");
+                projects::create_project(&base_dir, project_name, switch);
+            }
+
+            if let Some(task_matches) = matches.subcommand_matches("task") {
+                let task_description: Vec<&str> = task_matches
+                    .values_of("task_description")
+                    .unwrap()
+                    .collect();
+                let task_description = task_description.join(" ");
+                tasks::create_task(&base_dir, &task_description);
+            }
+        } else if let Some(matches) = matches.subcommand_matches("list") {
+            if let Some(_project_matches) = matches.subcommand_matches("projects") {
+                projects::list_projects(&base_dir, "list");
+            } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
+                tasks::list_tasks(&base_dir, "list");
+            } else if let Some(_note_matches) = matches.subcommand_matches("notes"){
+                notes::list_notes(&base_dir, "list");
+            } else {
+                tedo::list(&base_dir);
+            }
+
+        } else if let Some(matches) = matches.subcommand_matches("table") {
+            if let Some(_project_matches) = matches.subcommand_matches("projects") {
+                projects::list_projects(&base_dir, "table");
+            } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
+                tasks::list_tasks(&base_dir, "table");
+            } else if let Some(_note_matches) = matches.subcommand_matches("notes") {
+                notes::list_notes(&base_dir, "table");
+            }
+
+        } else if let Some(matches) = matches.subcommand_matches("switch") {
+            let project_name = matches.value_of("project_name").unwrap();
+            projects::switch_project(&base_dir, project_name);
+        } else if let Some(matches) = matches.subcommand_matches("edit") {
+            if let Some(note_matches) = matches.subcommand_matches("note") {
+                let note_identifier = note_matches.value_of("note_identifier").unwrap();
+                let note_id = note_identifier.parse::<u32>().expect("Failed to parse note identifier");
+                notes::edit_note(&base_dir, note_id);
+
+            }
+        } else {
+
+            println!("Invalid command. Use `tedo --help` to see the list of available commands.");
+
+        }
+
+    } else {
+        println!("You can initialize Tedo using `tedo init`");
+    }
+}
+
+
+fn arguments_from_shortcut(args: &[String]) -> Vec<String> {
+    // return a vector with as it's first elements, each letter of the first argument that was passed
+    let mut shortcut: Vec<String> = args[1].chars().map(|c| c.to_string()).collect();
+    println!("{:?}", shortcut);
+    return shortcut;
+}
+
+
+fn process_matches(args: &[String]) -> clap::ArgMatches {
     let matches = clap::App::new("Tedo")
         .version("1.0")
         .about("Productivity Manager CLI")
@@ -128,96 +255,11 @@ fn main() {
                                 .long("switch")
                                 .help("Switch to the new project"),
                         ),
-                ),
+                )
+
+
         )
-        .get_matches();
+        .get_matches_from(args);
 
-
-    // Handling the init subcommand
-    if matches.subcommand_matches("init").is_some() {
-        initialize_tedo();
-        return;
-    }
-
-
-    if Path::new(&base_dir).exists() {
-        if let Some(matches) = matches.subcommand_matches("create") {
-            if let Some(note_matches) = matches.subcommand_matches("note") {
-                let note_description: Vec<&str> = note_matches
-                    .values_of("note_description")
-                    .unwrap()
-                    .collect();
-                let note_description = note_description.join(" ");
-                notes::create_note(&base_dir, &note_description, "");
-            }
-            if let Some(project_matches) = matches.subcommand_matches("project") {
-                let project_name = project_matches.value_of("project_name").unwrap();
-                let switch = project_matches.is_present("switch");
-                projects::create_project(&base_dir, project_name, switch);
-            }
-
-            if let Some(task_matches) = matches.subcommand_matches("task") {
-                let task_description: Vec<&str> = task_matches
-                    .values_of("task_description")
-                    .unwrap()
-                    .collect();
-                let task_description = task_description.join(" ");
-                tasks::create_task(&base_dir, &task_description);
-            }
-        } else if let Some(matches) = matches.subcommand_matches("list") {
-            if let Some(_project_matches) = matches.subcommand_matches("projects") {
-                projects::list_projects(&base_dir, "list");
-            } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
-                tasks::list_tasks(&base_dir, "list");
-            } else if let Some(_note_matches) = matches.subcommand_matches("notes"){
-                notes::list_notes(&base_dir, "list");
-            } else {
-                tedo::list(&base_dir);
-            }
-
-        } else if let Some(matches) = matches.subcommand_matches("table") {
-            if let Some(_project_matches) = matches.subcommand_matches("projects") {
-                projects::list_projects(&base_dir, "table");
-            } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
-                tasks::list_tasks(&base_dir, "table");
-            } else if let Some(_note_matches) = matches.subcommand_matches("notes") {
-                notes::list_notes(&base_dir, "table");
-            }
-
-        } else if let Some(matches) = matches.subcommand_matches("switch") {
-            let project_name = matches.value_of("project_name").unwrap();
-            projects::switch_project(&base_dir, project_name);
-        } else if let Some(matches) = matches.subcommand_matches("edit") {
-            if let Some(note_matches) = matches.subcommand_matches("note") {
-                let note_identifier = note_matches.value_of("note_identifier").unwrap();
-                let note_id = note_identifier.parse::<u32>().expect("Failed to parse note identifier");
-                notes::edit_note(&base_dir, note_id);
-
-            }
-        } else {
-            println!("Invalid command. Use `tedo --help` to see the list of available commands.");
-        }
-
-    } else {
-        println!("You can initialize Tedo using `tedo init`");
-    }
-}
-
-
-fn initialize_tedo() {
-    use std::fs;
-    use std::io;
-
-    println!("Are you sure you want to initialize tedo on your machine? A folder named .tedo will be created in your home directory (y/n)");
-
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
-
-    if input.trim() == "y" {
-        let path = dirs::home_dir().unwrap().join(".tedo");
-        fs::create_dir_all(&path).expect("Failed to create .tedo directory");
-        println!(".tedo directory has been created successfully!");
-    } else {
-        println!("Initialization aborted.");
-    }
+    return matches;
 }
