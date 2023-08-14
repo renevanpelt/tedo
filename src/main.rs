@@ -4,7 +4,7 @@ mod storage;
 mod projects;
 mod tasks;
 mod notes;
-
+mod tedo;
 fn main() {
     let base_dir = dirs::home_dir().unwrap().join(".tedo");
 
@@ -171,6 +171,8 @@ fn main() {
                 tasks::list_tasks(&base_dir, "list");
             } else if let Some(_note_matches) = matches.subcommand_matches("notes"){
                 notes::list_notes(&base_dir, "list");
+            } else {
+                tedo::list(&base_dir);
             }
 
         } else if let Some(matches) = matches.subcommand_matches("table") {

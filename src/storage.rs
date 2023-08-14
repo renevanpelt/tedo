@@ -14,6 +14,7 @@ pub struct TedoState {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Project {
+    pub id: u32,
     pub name: String,
     pub tasks: Vec<Task>,
     pub notes: Vec<Note>,  // List of notes for each project
@@ -93,7 +94,8 @@ mod tests {
         // Create a Projects object and save it.
         let tedo_state = TedoState {
             current_project: Some("test_project".into()),
-            projects: vec![Project { name: "test".into(), tasks: Vec::new(), notes: Vec::new() }],
+
+            projects: vec![Project { id: 1, name: "test".into(), tasks: Vec::new(), notes: Vec::new() }],
         };
         save_state(base_dir, &tedo_state)?;
 

@@ -18,7 +18,8 @@ pub fn create_project(base_dir: &Path, name: &str, switch: bool) {
         println!("Project with name {} already exists", name);
         return;
     }
-    tedo_state.projects.push(Project { name: name.into(), tasks: Vec::new(), notes: Vec::new() });
+    let project_id = tedo_state.projects.len() as u32 + 1;
+    tedo_state.projects.push(Project { id: project_id, name: name.into(), tasks: Vec::new(), notes: Vec::new() });
     save_state(base_dir, &tedo_state).expect("Failed to save projects");
 
     if switch {
@@ -29,7 +30,6 @@ pub fn create_project(base_dir: &Path, name: &str, switch: bool) {
 
 pub fn switch_project(base_dir: &Path, name: &str) {
     let tedo_state = storage::load_state(base_dir).unwrap_or_default();
-
 
     if tedo_state.projects.iter().any(|p| p.name == name) {
         println!("Switching to project {}", name);
@@ -63,7 +63,7 @@ pub fn list_projects(base_dir: &Path, mode: &str) {
         return;
     }
     for project in projects.projects {
-        println!("{}", project.name);
+        println!("({}) {}", project.id, project.name);
     }
 }
 
