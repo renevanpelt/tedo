@@ -1,8 +1,29 @@
 use std::path::Path;
 
 use crate::storage;
-use crate::storage::Project;
+use crate::storage::{Project, TedoState};
 use crate::storage::save_state;
+
+impl Project {
+    pub fn find(base_dir: &Path, identifier: &str) -> Option<Project> {
+        let state = storage::load_state(base_dir).unwrap_or_default();
+        if identifier.parse::<u32>().is_ok() {
+            return Project::find_by_id(state, identifier.parse::<u32>().unwrap());
+        } else {
+            return Project::find_by_name(state, identifier.to_string());
+        }
+    }
+
+
+    pub fn find_by_id(state: TedoState, id: u32) -> Option<Project> {
+        return state.projects.into_iter().find(|p| p.id == id);
+    }
+
+    pub fn find_by_name(state: TedoState, name_start: String) -> Option<Project> {
+        return state.projects.into_iter().find(|p| p.name.starts_with(&name_start));
+    }
+}
+
 
 pub fn current_project(base_dir: &Path) -> Option<Project> {
     let tedo_state = storage::load_state(base_dir).unwrap_or_default();
@@ -55,7 +76,6 @@ pub fn list_projects(base_dir: &Path, mode: &str) {
                     println!("| {:^21} + {:^20}  + {:^20} |", format!("{} (current)", project.name), project.tasks.len(), project.notes.len());
                 } else {
                     println!("| {:^21} + {:^20}  + {:^20} |", project.name, project.tasks.len(), project.notes.len());
-
                 }
             }
         }
@@ -73,9 +93,6 @@ mod tests {
     use tempfile::tempdir;
 
     use super::*;
-
-
-
 
     #[test]
     fn test_create_project() {

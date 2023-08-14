@@ -1,8 +1,8 @@
 use std::path::Path;
-use crate::projects::current_project;
 
+use crate::projects::current_project;
 use crate::storage;
-use crate::storage::save_state;
+use crate::storage::{Project, save_state};
 use crate::storage::Task;
 
 pub fn create_task(base_dir: &Path, description: &str) {
@@ -20,24 +20,30 @@ pub fn create_task(base_dir: &Path, description: &str) {
     }
 }
 
-pub fn list_tasks(base_dir: &Path, mode: &str) {
 
-    let project = current_project(&base_dir);
-
-    if let Some(project) = project {
+impl Project {
+    fn list_tasks(&self, mode: &str) {
         if mode == "table" {
             println!("+ {:^10} + {:^40} +", "----------", "---------------------------------------");
             println!("| {:^10} | {:^40} |", "ID", "Description");
             println!("| {:^10} | {:^40} |", "----------", "---------------------------------------");
-            for task in &project.tasks {
+            for task in &self.tasks {
                 println!("| {:^10} | {:^40} |", task.id, task.description);
             }
             println!("+ {:^10} + {:^40} +", "----------", "---------------------------------------");
             return;
         }
-        for task in &project.tasks {
+        for task in &self.tasks {
             println!("{} {}", task.id, task.description);
         }
+    }
+}
+
+
+pub fn list_tasks(base_dir: &Path, mode: &str) {
+    let project = current_project(&base_dir);
+    if let Some(project) = project {
+        project.list_tasks(mode);
     } else {
         println!("No selected project. Please switch to a project before listing tasks.");
     }

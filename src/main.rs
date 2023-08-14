@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use crate::storage::Project;
+
 mod storage;
 mod projects;
 mod tasks;
@@ -51,7 +53,7 @@ fn initialize_tedo() {
     }
 }
 
-fn handle_arguments(base_dir: &Path,matches: &clap::ArgMatches) {
+fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches) {
 
     // Handling the init subcommand
     if matches.subcommand_matches("init").is_some() {
@@ -89,21 +91,23 @@ fn handle_arguments(base_dir: &Path,matches: &clap::ArgMatches) {
                 projects::list_projects(&base_dir, "list");
             } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
                 tasks::list_tasks(&base_dir, "list");
-            } else if let Some(_note_matches) = matches.subcommand_matches("notes"){
+            } else if let Some(_note_matches) = matches.subcommand_matches("notes") {
                 notes::list_notes(&base_dir, "list");
             } else {
                 tedo::list(&base_dir);
             }
-
         } else if let Some(matches) = matches.subcommand_matches("table") {
             if let Some(_project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "table");
             } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
+                if let Some(project_name) = matches.value_of("project") {
+                    let project = Project::find(base_dir, project_name);
+
+                }
                 tasks::list_tasks(&base_dir, "table");
             } else if let Some(_note_matches) = matches.subcommand_matches("notes") {
                 notes::list_notes(&base_dir, "table");
             }
-
         } else if let Some(matches) = matches.subcommand_matches("switch") {
             let project_name = matches.value_of("project_name").unwrap();
             projects::switch_project(&base_dir, project_name);
@@ -112,25 +116,19 @@ fn handle_arguments(base_dir: &Path,matches: &clap::ArgMatches) {
                 let note_identifier = note_matches.value_of("note_identifier").unwrap();
                 let note_id = note_identifier.parse::<u32>().expect("Failed to parse note identifier");
                 notes::edit_note(&base_dir, note_id);
-
             }
         } else {
-
             println!("Invalid command. Use `tedo --help` to see the list of available commands.");
-
         }
-
     } else {
         println!("You can initialize Tedo using `tedo init`");
     }
 }
 
 
+
 fn arguments_from_shortcut(args: &[String]) -> Vec<String> {
-    // return a vector with as it's first elements, each letter of the first argument that was passed
-    let mut shortcut: Vec<String> = args[1].chars().map(|c| c.to_string()).collect();
-    println!("{:?}", shortcut);
-    return shortcut;
+    return args[1].chars().map(|c| c.to_string()).collect();
 }
 
 
@@ -190,12 +188,24 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                 .subcommand(
                     clap::SubCommand::with_name("tasks")
                         .aliases(&["t", "ts", "task"])
-                        .about("List all tasks"),
+                        .about("List all tasks")
+                        .arg(
+                            clap::Arg::with_name("project")
+                                .short("p")
+                                .long("project")
+                                .help("Filter by project"),
+                        ),
                 )
                 .subcommand(
                     clap::SubCommand::with_name("notes")
                         .aliases(&["n", "nt", "note"])
-                        .about("List all notes"),
+                        .about("List all notes")
+                        .arg(
+                            clap::Arg::with_name("project")
+                                .short("p")
+                                .long("project")
+                                .help("Filter by project"),
+                        ),
                 ),
         )
 
@@ -225,7 +235,6 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                                 .required(true)
                                 .multiple(true),
                         ),
-
                 )
                 .subcommand(
                     clap::SubCommand::with_name("task")
@@ -236,7 +245,6 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                                 .help("Description of the task")
                                 .required(true)
                                 .multiple(true),
-
                         ),
                 )
 
@@ -256,8 +264,6 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                                 .help("Switch to the new project"),
                         ),
                 )
-
-
         )
         .get_matches_from(args);
 

@@ -18,8 +18,9 @@ pub struct Project {
     pub name: String,
     pub tasks: Vec<Task>,
     pub notes: Vec<Note>,  // List of notes for each project
-
 }
+
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Note {
