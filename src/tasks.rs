@@ -5,6 +5,9 @@ use crate::storage;
 use crate::storage::{Project, save_state};
 use crate::storage::Task;
 
+use prettytable::row;
+
+
 pub fn create_task(base_dir: &Path, description: &str) {
     let mut tedo_state = storage::load_state(base_dir).unwrap_or_default();
     let current_project_name = tedo_state.current_project.clone().unwrap_or_default();
@@ -22,15 +25,27 @@ pub fn create_task(base_dir: &Path, description: &str) {
 
 
 impl Project {
-    fn list_tasks(&self, mode: &str) {
+    pub fn list_tasks(&self, mode: &str) {
         if mode == "table" {
-            println!("+ {:^10} + {:^40} +", "----------", "---------------------------------------");
-            println!("| {:^10} | {:^40} |", "ID", "Description");
-            println!("| {:^10} | {:^40} |", "----------", "---------------------------------------");
+            // println!("+ {:^10} + {:^40} +", "----------", "---------------------------------------");
+            // println!("| {:^10} | {:^40} |", "ID", "Description");
+            // println!("| {:^10} | {:^40} |", "----------", "---------------------------------------");
+            // for task in &self.tasks {
+            //     println!("| {:^10} | {:^40} |", task.id, task.description);
+            // }
+            // println!("+ {:^10} + {:^40} +", "----------", "---------------------------------------");
+
+            // Use prettytable crate
+
+
+            let mut table = prettytable::Table::new();
+            table.add_row(row!["ID", "Description"]);
             for task in &self.tasks {
-                println!("| {:^10} | {:^40} |", task.id, task.description);
+                table.add_row(row![task.id, task.description]);
             }
-            println!("+ {:^10} + {:^40} +", "----------", "---------------------------------------");
+            table.printstd();
+
+
             return;
         }
         for task in &self.tasks {

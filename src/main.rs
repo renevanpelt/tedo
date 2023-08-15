@@ -99,12 +99,20 @@ fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches) {
         } else if let Some(matches) = matches.subcommand_matches("table") {
             if let Some(_project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "table");
-            } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
-                if let Some(project_name) = matches.value_of("project") {
-                    let project = Project::find(base_dir, project_name);
+            } else if let Some(task_matches) = matches.subcommand_matches("tasks") {
+                if let Some(project_matches) = task_matches.subcommand_matches("project") {
+                    let project_identifier = project_matches
+                        .value_of("project_identifier");
+
+                    if let Some(project_identifier) = project_identifier {
+                        let project = Project::find(base_dir, project_identifier);
+                        if let Some(project) = project {
+                            project.list_tasks("table")
+                        }
+                    }
 
                 }
-                tasks::list_tasks(&base_dir, "table");
+                // tasks::list_tasks(&base_dir, "table");
             } else if let Some(_note_matches) = matches.subcommand_matches("notes") {
                 notes::list_notes(&base_dir, "table");
             }
@@ -124,7 +132,6 @@ fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches) {
         println!("You can initialize Tedo using `tedo init`");
     }
 }
-
 
 
 fn arguments_from_shortcut(args: &[String]) -> Vec<String> {
@@ -189,11 +196,15 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                     clap::SubCommand::with_name("tasks")
                         .aliases(&["t", "ts", "task"])
                         .about("List all tasks")
-                        .arg(
-                            clap::Arg::with_name("project")
-                                .short("p")
-                                .long("project")
-                                .help("Filter by project"),
+                        .subcommand(
+                            clap::SubCommand::with_name("project")
+                                .aliases(&["p"])
+                                .help("Filter by project")
+
+                                .arg(
+                                    clap::Arg::with_name("project_identifier")
+                                        .help("Filter by project"),
+                                ),
                         ),
                 )
                 .subcommand(
@@ -203,6 +214,7 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                         .arg(
                             clap::Arg::with_name("project")
                                 .short("p")
+                                .takes_value(true)
                                 .long("project")
                                 .help("Filter by project"),
                         ),

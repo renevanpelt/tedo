@@ -22,14 +22,14 @@ impl Project {
     pub fn find_by_name(state: TedoState, name_start: String) -> Option<Project> {
         return state.projects.into_iter().find(|p| p.name.starts_with(&name_start));
     }
+
 }
 
 
 pub fn current_project(base_dir: &Path) -> Option<Project> {
     let tedo_state = storage::load_state(base_dir).unwrap_or_default();
     let current_project_name = tedo_state.current_project.unwrap_or_default();
-
-    tedo_state.projects.into_iter().find(|p| p.name == current_project_name)
+    return Project::find(base_dir, &current_project_name);
 }
 
 

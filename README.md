@@ -57,4 +57,56 @@ tedo table notes
 tedo edit note <note_identifier>
 ```
 
+
+
+## Using shorthands
+
+We can concatenate 1-letter shorthands for commands. That way, we only use spaces to separate commands with identifiers.
+
+We can also identify projects with the first letters of their names. You can find the project shorthands by running `tedo l` (or `list`, or `ls`)
+
+For example
+
+```bash
+tedo ttp g
+```
+
+is equivalent to
+
+```bash
+tedo table tasks project general
+```
+
+given that `general` is the name of a project, and `g` is the shorthand
+
+```bash
+
+$ td l
+
+# => Current project: (1) general     # projects: 3           # tasks 5       # notes 6
+# => +----+--------------+-------+-------+
+# => | ID | Project Name | Tasks | Notes |
+# => +----+--------------+-------+-------+
+# => | 1  | (g) general  | 5     | 5     |
+# => +----+--------------+-------+-------+
+# => | 2  | (f) foo      | 0     | 1     |
+# => +----+--------------+-------+-------+
+# => | 3  | (gr) growth  | 0     | 0     |
+# => +----+--------------+-------+-------+
+
+```
+
+In this example, we can list the tasks of the project named "growth" with id 3 by running
+
+```bash
+tedo ttp gr
+```
+
+or 
+
+```bash
+tedo ttp 3
+```
+
+
 Where the `<note_identifier>` is the note's id or slug.
