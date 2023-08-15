@@ -56,13 +56,30 @@ impl Project {
 
 
 pub fn list_tasks(base_dir: &Path, mode: &str) {
-    let project = current_project(&base_dir);
-    if let Some(project) = project {
-        project.list_tasks(mode);
-    } else {
-        println!("No selected project. Please switch to a project before listing tasks.");
+
+    let tedo_state = storage::load_state(base_dir).unwrap_or_default();
+    let all_tasks: Vec<&Task> = tedo_state.projects.iter().flat_map(|p| &p.tasks).collect();
+    println!("{} tasks found", all_tasks.len());
+    println!("");
+    // Display table or list of tasks including project identifier, name and shorthand
+
+    if mode == "table" {
+        let mut table = prettytable::Table::new();
+        table.add_row(row!["ID", "Description", "Project"]);
+        for task in all_tasks {
+            let project = tedo_state.projects.iter().find(|p| p.tasks.contains(task)).unwrap();
+            table.add_row(row![task.id, task.description, project.name]);
+        }
+        table.printstd();
+        return;
+    }
+
+    for task in all_tasks {
+        let project = tedo_state.projects.iter().find(|p| p.tasks.contains(task)).unwrap();
+        println!("{}\t{}\t{}", project.name, task.id, task.description);
     }
 }
+
 
 
 #[cfg(test)]

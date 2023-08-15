@@ -1,4 +1,5 @@
 use std::path::Path;
+use crate::projects::current_project;
 
 use crate::storage::Project;
 
@@ -103,9 +104,19 @@ fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches, args: &[String]
         } else if let Some(matches) = matches.subcommand_matches("list") {
             if let Some(_project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "list");
-            } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
-                if let Some(_) = matches.value_of("all") {
+            } else if let Some(task_matches) = matches.subcommand_matches("tasks") {
+
+
+                if let Some(_) = task_matches.subcommand_matches("all") {
+                    println!("All tasks");
                     tasks::list_tasks(&base_dir, "list");
+                } else {
+                    let project = current_project(&base_dir);
+                    if let Some(project) = project {
+                        project.list_tasks("list");
+                    } else {
+                        println!("No selected project. Please switch to a project before listing tasks.");
+                    }
                 }
             } else if let Some(_note_matches) = matches.subcommand_matches("notes") {
                 notes::list_notes(&base_dir, "list");
