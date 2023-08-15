@@ -9,29 +9,36 @@ mod notes;
 mod tedo;
 
 
+static PROJECT_SHORTHANDS: [&str; 4] = ["project", "pr", "proj", "pro"];
 fn main() {
     let base_dir = dirs::home_dir().unwrap().join(".tedo");
     let args: Vec<String> = std::env::args().collect();
 
-    let known_subcommands = vec!["init", "create", "list", "edit", "switch", "table"];
+    let known_subcommands = vec!["project", "init", "create", "list", "edit", "switch", "table"];
     let processed_args;
+    let mut clap_args = args.clone();
 
-    if args.len() > 1 && !known_subcommands.contains(&args[1].as_str()) {
+
+    if args.len() > 3 && PROJECT_SHORTHANDS.contains(&args[1].as_str()) {
+        clap_args.truncate(3); // Only take the first 3 arguments for clap
+    }
+
+    if clap_args.len() > 1 && !known_subcommands.contains(&clap_args[1].as_str()) {
         // Convert shortcuts to potential subcommands
         let new_args = arguments_from_shortcut(&args);
 
         // Merge the new args with the old ones
-        let mut merged_args = vec![args[0].clone()];
+        let mut merged_args = vec![clap_args[0].clone()];
         merged_args.extend(new_args);
-        merged_args.extend(args[2..].to_vec());
+        merged_args.extend(clap_args[2..].to_vec());
 
         processed_args = merged_args;
     } else {
-        processed_args = args.clone();
+        processed_args = clap_args.clone();
     }
 
     let matches = process_matches(&processed_args);
-    handle_arguments(&base_dir, &matches);
+    handle_arguments(&base_dir, &matches, &args);
 }
 
 
@@ -53,7 +60,7 @@ fn initialize_tedo() {
     }
 }
 
-fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches) {
+fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches, args: &[String]) {
 
     // Handling the init subcommand
     if matches.subcommand_matches("init").is_some() {
@@ -63,6 +70,9 @@ fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches) {
 
 
     if Path::new(&base_dir).exists() {
+
+        // Create
+
         if let Some(matches) = matches.subcommand_matches("create") {
             if let Some(note_matches) = matches.subcommand_matches("note") {
                 let note_description: Vec<&str> = note_matches
@@ -86,6 +96,10 @@ fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches) {
                 let task_description = task_description.join(" ");
                 tasks::create_task(&base_dir, &task_description);
             }
+
+
+        // List
+
         } else if let Some(matches) = matches.subcommand_matches("list") {
             if let Some(_project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "list");
@@ -96,6 +110,10 @@ fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches) {
             } else {
                 tedo::list(&base_dir);
             }
+
+
+        //  Table
+
         } else if let Some(matches) = matches.subcommand_matches("table") {
             if let Some(_project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "table");
@@ -116,18 +134,55 @@ fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches) {
             } else if let Some(_note_matches) = matches.subcommand_matches("notes") {
                 notes::list_notes(&base_dir, "table");
             }
+
+
+        // Switch
+
+
         } else if let Some(matches) = matches.subcommand_matches("switch") {
             let project_name = matches.value_of("project_name").unwrap();
             projects::switch_project(&base_dir, project_name);
+
+
+
+        // Edit
+
         } else if let Some(matches) = matches.subcommand_matches("edit") {
             if let Some(note_matches) = matches.subcommand_matches("note") {
                 let note_identifier = note_matches.value_of("note_identifier").unwrap();
                 let note_id = note_identifier.parse::<u32>().expect("Failed to parse note identifier");
                 notes::edit_note(&base_dir, note_id);
             }
+            // Project
+        } else if let Some(matches) = matches.subcommand_matches("project") {
+            let project_identifier = matches.value_of("project_identifier").unwrap();
+
+
+            let project = Project::find(base_dir, project_identifier);
+            if let Some(project) = project {
+                println!("{} {}", project.id, project.name);
+            }
+
+            println!("Project: {:?}", args);
+            if args.len() > 3 {
+                let additional_args: Vec<String> = args[2..].to_vec();
+                println!("{:?}", additional_args);
+                // Now additional_args contains your ["here", "are", "more", "arguments"]
+                // Do something with additional_args...
+                handle_arguments(&base_dir, &process_matches(&additional_args), &additional_args);
+            }
+
+
+
         } else {
             println!("Invalid command. Use `tedo --help` to see the list of available commands.");
         }
+
+
+
+
+
+
     } else {
         println!("You can initialize Tedo using `tedo init`");
     }
@@ -148,6 +203,9 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                 .about("Initialize Tedo in the current directory"),
         )
 
+
+        // List
+
         .subcommand(
             clap::SubCommand::with_name("list")
                 .aliases(&["ls", "l"])
@@ -159,7 +217,7 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                 )
                 .subcommand(
                     clap::SubCommand::with_name("projects")
-                        .aliases(&["p", "pr", "project"])
+                        .aliases(&PROJECT_SHORTHANDS)
                         .about("List all projects"),
                 )
                 .subcommand(
@@ -168,6 +226,9 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                         .about("List all tasks"),
                 ),
         )
+
+        // Edit
+
         .subcommand(
             clap::SubCommand::with_name("edit")
                 .aliases(&["e", "ed"])
@@ -183,13 +244,16 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                         ),
                 )
         )
+
+        // Table
+
         .subcommand(
             clap::SubCommand::with_name("table")
                 .aliases(&["t", "tb", "tbl", "ta", "tab"])
                 .about("List objects like projects, tasks, etc.")
                 .subcommand(
                     clap::SubCommand::with_name("projects")
-                        .aliases(&["p", "pr", "project"])
+                        .aliases(&PROJECT_SHORTHANDS)
                         .about("List all projects"),
                 )
                 .subcommand(
@@ -198,7 +262,7 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                         .about("List all tasks")
                         .subcommand(
                             clap::SubCommand::with_name("project")
-                                .aliases(&["p"])
+                                .aliases(&PROJECT_SHORTHANDS)
                                 .help("Filter by project")
 
                                 .arg(
@@ -221,6 +285,7 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                 ),
         )
 
+        // Switch
 
         .subcommand(
             clap::SubCommand::with_name("switch")
@@ -232,6 +297,8 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                         .required(true),
                 ),
         )
+
+        // Create
 
         .subcommand(
             clap::SubCommand::with_name("create")
@@ -277,6 +344,21 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                         ),
                 )
         )
+
+        // Project
+
+        .subcommand(
+            clap::SubCommand::with_name("project")
+                .aliases(&["p", "pr"])
+                .about("Manage projects")
+                .arg(
+                    clap::Arg::with_name("project_identifier")
+                        .help("Identifier (id, name or shorthand) of the project")
+                        .required(true)
+
+                )
+        )
+
         .get_matches_from(args);
 
     return matches;

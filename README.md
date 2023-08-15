@@ -57,6 +57,18 @@ tedo table notes
 tedo edit note <note_identifier>
 ```
 
+### 7. Scope a command to a project
+
+To quickly create a note in a project without switching the context
+
+```bash
+
+tedo project <project_identifier> [command here]
+
+tedo project my_project create note "My note"
+
+
+```
 
 
 ## Using shorthands
