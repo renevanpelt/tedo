@@ -104,7 +104,9 @@ fn handle_arguments(base_dir: &Path, matches: &clap::ArgMatches, args: &[String]
             if let Some(_project_matches) = matches.subcommand_matches("projects") {
                 projects::list_projects(&base_dir, "list");
             } else if let Some(_task_matches) = matches.subcommand_matches("tasks") {
-                tasks::list_tasks(&base_dir, "list");
+                if let Some(_) = matches.value_of("all") {
+                    tasks::list_tasks(&base_dir, "list");
+                }
             } else if let Some(_note_matches) = matches.subcommand_matches("notes") {
                 notes::list_notes(&base_dir, "list");
             } else {
@@ -223,8 +225,15 @@ fn process_matches(args: &[String]) -> clap::ArgMatches {
                 .subcommand(
                     clap::SubCommand::with_name("tasks")
                         .aliases(&["t", "ts", "task"])
-                        .about("List all tasks"),
-                ),
+                        .about("List all tasks")
+                        .subcommand(
+                            clap::SubCommand::with_name("all")
+                                .aliases(&["a", "al"])
+                                .about("List all tasks"),
+                        ),
+
+                )
+
         )
 
         // Edit
